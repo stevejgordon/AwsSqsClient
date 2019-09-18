@@ -1,4 +1,5 @@
-﻿using HighPerfCloud.Aws.Sqs.Core.Primitives;
+﻿using System;
+using HighPerfCloud.Aws.Sqs.Core.Primitives;
 
 namespace HighPerfCloud.Aws.Sqs.Core
 {
@@ -14,5 +15,17 @@ namespace HighPerfCloud.Aws.Sqs.Core
         }
 
         public MessageId MessageId { get; }
+    }
+
+    public sealed class MessageWrapper<T>
+    {
+        public MessageWrapper(T processedMessage, Func<LightweightMessage, T> processor)
+        {
+
+        }
+
+        //public 
+
+        public T ProcessedMessage { get; private set; }
     }
 }

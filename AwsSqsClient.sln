@@ -19,6 +19,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{0D0E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UsageSamples", "samples\UsageSamples\UsageSamples.csproj", "{1ACF3E3C-7C7B-43EA-BF3B-8AF653956050}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D05136DC-F42B-4569-91F4-73914159A9FE}"
+	ProjectSection(SolutionItems) = preProject
+		docs\Phase One.md = docs\Phase One.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
