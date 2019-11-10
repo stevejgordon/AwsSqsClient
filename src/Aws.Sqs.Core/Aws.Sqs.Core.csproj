@@ -8,4 +8,12 @@
     <NullableContextOptions>enable</NullableContextOptions>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Version="4.6.0" />
+  </ItemGroup>
+
 </Project>
