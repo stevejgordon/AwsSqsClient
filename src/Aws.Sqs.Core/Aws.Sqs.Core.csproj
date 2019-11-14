@@ -13,6 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="QueueUrlGenerator.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.IO.Pipelines" Version="4.6.0" />
   </ItemGroup>
 
