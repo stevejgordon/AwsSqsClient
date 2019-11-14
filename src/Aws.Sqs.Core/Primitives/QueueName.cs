@@ -2,7 +2,7 @@
 
 namespace HighPerfCloud.Aws.Sqs.Core.Primitives
 {
-    public readonly struct QueueName : IEquatable<QueueName>
+    public class QueueName : IEquatable<QueueName>
     {
         // incomplete
 
