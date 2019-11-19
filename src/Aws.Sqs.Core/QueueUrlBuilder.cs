@@ -45,7 +45,7 @@ namespace HighPerfCloud.Aws.Sqs.Core
             destination = destination.Slice(12);
             destination[0] = SlashChar;
             destination = destination.Slice(1);
-            bytesWritten += 13;
+            bytesWritten += AccountId.CharacterLength + 1;
 
             queueName.Value.AsSpan().CopyTo(destination);
             bytesWritten += queueName.Value.Length;
@@ -73,7 +73,8 @@ namespace HighPerfCloud.Aws.Sqs.Core
             var length = PrefixChars.Length +
                          region.RegionCode.Length +
                          SuffixChars.Length +
-                         13 + // 12 for account ID + 1 extra for slash
+                         AccountId.CharacterLength + 
+                         1 + // 1 extra for slash
                          queueName.Value.Length;
 
             return length;

@@ -21,6 +21,8 @@ namespace HighPerfCloud.Aws.Sqs.Core.Primitives
 
         private static ReadOnlySpan<char> Format => new[] { '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0' };
 
+        public static int CharacterLength = 12;
+
         public AccountId(long accountId)
         {
             if (accountId < 0)
