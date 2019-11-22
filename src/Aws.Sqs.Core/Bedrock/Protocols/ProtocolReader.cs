@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Connections;
+﻿using System.IO;
+using Microsoft.AspNetCore.Connections;
 using System.Threading;
 using System.Threading.Tasks;
 

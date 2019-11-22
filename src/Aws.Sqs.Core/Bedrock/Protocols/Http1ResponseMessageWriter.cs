@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Buffers;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using HighPerfCloud.Aws.Sqs.Core.Bedrock.Infrastructure;
 
 namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Protocols
 {

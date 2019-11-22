@@ -1,10 +1,13 @@
-﻿using System;
+﻿using HighPerfCloud.Aws.Sqs.Core;
+using HighPerfCloud.Aws.Sqs.Core.Bedrock;
+using HighPerfCloud.Aws.Sqs.Core.Bedrock.Protocols;
+using HighPerfCloud.Aws.Sqs.Core.Bedrock.Transports;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using HighPerfCloud.Aws.Sqs.Core;
 
 namespace UsageSamples
 {
@@ -16,54 +19,70 @@ namespace UsageSamples
 
         private static async Task Main(string[] args)
         {
-            for (int i = 0; i < 10; i++)
-            {
-                await RentAndPopulateFromStreamAsync();
-            }
+            var sc = new ServiceCollection();
+            var serviceProvider = sc.BuildServiceProvider();
 
-            await RentAndPopulateFromStreamAsync();
-         
-            Console.WriteLine("Done 1");
+            var client = new ClientBuilder(serviceProvider)
+                .UseSockets()
+                //.UseDnsCaching(TimeSpan.FromHours(1))
+                //.UseConnectionLogging()
+                .Build();
 
-            byte[] bytes = GetResponseBytes();
+            await using var connection = await client.ConnectAsync(new DnsEndPoint("example.com", 80));
 
-            await using var ms = new MemoryStream(bytes);
+            var httpProtocol = HttpClientProtocol.CreateFromConnection(connection);
 
-            using var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StreamContent(ms)
-            };
+            var response = await httpProtocol.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/"));
 
-            using var reader = new LightweightMessageReader(response);
 
-            await foreach (var message in reader)
-            {
-                Console.WriteLine(message.MessageId);
-            }
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    await RentAndPopulateFromStreamAsync();
+            //}
 
-            Console.WriteLine("Done 2");
+            //await RentAndPopulateFromStreamAsync();
 
-            await using var ms2 = new MemoryStream(bytes);
+            //Console.WriteLine("Done 1");
 
-            using var response2 = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StreamContent(ms2)
-            };
+            //byte[] bytes = GetResponseBytes();
 
-            await using var contentStream = await response2.Content.ReadAsStreamAsync();
+            //await using var ms = new MemoryStream(bytes);
 
-            if (response2.Content.Headers.ContentLength != null)
-            {
-                using var reader2 = new LightweightMessageReader(contentStream,
-                    (int)response2.Content.Headers.ContentLength.Value);
+            //using var response = new HttpResponseMessage(HttpStatusCode.OK)
+            //{
+            //    Content = new StreamContent(ms)
+            //};
 
-                await foreach (var message in reader2)
-                {
-                    Console.WriteLine(message.MessageId);
-                }
-            }
+            //using var reader = new LightweightMessageReader(response);
 
-            Console.WriteLine("Done 3");
+            //await foreach (var message in reader)
+            //{
+            //    Console.WriteLine(message.MessageId);
+            //}
+
+            //Console.WriteLine("Done 2");
+
+            //await using var ms2 = new MemoryStream(bytes);
+
+            //using var response2 = new HttpResponseMessage(HttpStatusCode.OK)
+            //{
+            //    Content = new StreamContent(ms2)
+            //};
+
+            //await using var contentStream = await response2.Content.ReadAsStreamAsync();
+
+            //if (response2.Content.Headers.ContentLength != null)
+            //{
+            //    using var reader2 = new LightweightMessageReader(contentStream,
+            //        (int)response2.Content.Headers.ContentLength.Value);
+
+            //    await foreach (var message in reader2)
+            //    {
+            //        Console.WriteLine(message.MessageId);
+            //    }
+            //}
+
+            //Console.WriteLine("Done 3");
         }
 
         private static async Task RentAndPopulateFromStreamAsync()
