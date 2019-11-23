@@ -1,5 +1,6 @@
 ﻿using HighPerfCloud.Aws.Sqs.Core;
 using HighPerfCloud.Aws.Sqs.Core.Bedrock;
+using HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware;
 using HighPerfCloud.Aws.Sqs.Core.Bedrock.Protocols;
 using HighPerfCloud.Aws.Sqs.Core.Bedrock.Transports;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace UsageSamples
 {
@@ -19,20 +21,24 @@ namespace UsageSamples
 
         private static async Task Main(string[] args)
         {
-            var sc = new ServiceCollection();
-            var serviceProvider = sc.BuildServiceProvider();
+            var serviceProvider = new ServiceCollection().AddLogging(builder =>
+            {
+                builder.SetMinimumLevel(LogLevel.Debug);
+                builder.AddConsole();
+            })
+            .BuildServiceProvider();
 
             var client = new ClientBuilder(serviceProvider)
                 .UseSockets()
                 //.UseDnsCaching(TimeSpan.FromHours(1))
-                //.UseConnectionLogging()
+                .UseConnectionLogging()
                 .Build();
 
-            await using var connection = await client.ConnectAsync(new DnsEndPoint("example.com", 80));
+            await using var connection = await client.ConnectAsync(new DnsEndPoint("localhost", 5000));
 
             var httpProtocol = HttpClientProtocol.CreateFromConnection(connection);
 
-            var response = await httpProtocol.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/"));
+            var response = await httpProtocol.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/weatherforecast"));
 
 
             //for (int i = 0; i < 10; i++)
