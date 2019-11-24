@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace UsageSamples
 {
@@ -30,7 +31,7 @@ namespace UsageSamples
 
             var client = new ClientBuilder(serviceProvider)
                 .UseSockets()
-                //.UseDnsCaching(TimeSpan.FromHours(1))
+                .UseDnsCaching(TimeSpan.FromHours(1))
                 .UseConnectionLogging()
                 .Build();
 
@@ -38,7 +39,10 @@ namespace UsageSamples
 
             var httpProtocol = HttpClientProtocol.CreateFromConnection(connection);
 
-            var response = await httpProtocol.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/weatherforecast"));
+            var request = new HttpRequestMessage(HttpMethod.Get, "/");
+            request.Headers.Host = "localhost";
+
+            var response = await httpProtocol.SendAsync(request);
 
 
             //for (int i = 0; i < 10; i++)
@@ -66,7 +70,7 @@ namespace UsageSamples
             //    Console.WriteLine(message.MessageId);
             //}
 
-            //Console.WriteLine("Done 2");
+            Console.WriteLine("Done");
 
             //await using var ms2 = new MemoryStream(bytes);
 
