@@ -52,6 +52,10 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Protocols
 
                 if (_state == State.Body)
                 {
+                    var r = new ReceiveMessageResponseReader();
+
+                    var count = r.CountMessages(buffer.First.Span);
+                    
                     break;
                 }
 

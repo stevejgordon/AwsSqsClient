@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Net.Security;
@@ -16,15 +17,15 @@ using ITlsHandshakeFeature = HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware.Tls.I
 
 namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware
 {
-
-    internal class TlsClientConnectionMiddleware
+    internal class TlsServerConnectionMiddleware
     {
         private readonly ConnectionDelegate _next;
         private readonly TlsOptions _options;
         private readonly ILogger _logger;
         private readonly X509Certificate2 _certificate;
+        private readonly Func<ConnectionContext, string, X509Certificate2> _certificateSelector;
 
-        public TlsClientConnectionMiddleware(ConnectionDelegate next, TlsOptions options, ILoggerFactory loggerFactory)
+        public TlsServerConnectionMiddleware(ConnectionDelegate next, TlsOptions options, ILoggerFactory loggerFactory)
         {
             if (options == null)
             {
@@ -35,20 +36,35 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware
 
             // capture the certificate now so it can't be switched after validation
             _certificate = options.LocalCertificate;
-
-            if (_certificate != null)
+            _certificateSelector = options.LocalServerCertificateSelector;
+            if (_certificate == null && _certificateSelector == null)
             {
-                EnsureCertificateIsAllowedForClientAuth(_certificate);
+                throw new ArgumentException("Server certificate is required", nameof(options));
+            }
+
+            // If a selector is provided then ignore the cert, it may be a default cert.
+            if (_certificateSelector != null)
+            {
+                // SslStream doesn't allow both.
+                _certificate = null;
+            }
+            else
+            {
+                EnsureCertificateIsAllowedForServerAuth(_certificate);
             }
 
             _options = options;
-            //_logger = loggerFactory?.CreateLogger<TlsServerConnectionMiddleware>();
+            _logger = loggerFactory?.CreateLogger<TlsServerConnectionMiddleware>();
         }
 
-        public async Task OnConnectionAsync(ConnectionContext context)
+        public Task OnConnectionAsync(ConnectionContext context)
         {
-            await Task.Yield();
+            return Task.Run(() => InnerOnConnectionAsync(context));
+        }
 
+        private async Task InnerOnConnectionAsync(ConnectionContext context)
+        {
+            bool certificateRequired;
             var feature = new TlsConnectionFeature();
             context.Features.Set<ITlsConnectionFeature>(feature);
             context.Features.Set<ITlsHandshakeFeature>(feature);
@@ -74,6 +90,7 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware
             if (_options.RemoteCertificateMode == RemoteCertificateMode.NoCertificate)
             {
                 sslDuplexPipe = new SslDuplexPipe(context.Transport, inputPipeOptions, outputPipeOptions);
+                certificateRequired = false;
             }
             else
             {
@@ -111,26 +128,45 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware
 
                         return true;
                     }));
+
+                certificateRequired = true;
             }
 
             var sslStream = sslDuplexPipe.Stream;
 
-            using (var cancellationTokeSource = new CancellationTokenSource(_options.HandshakeTimeout))
+            using (var cancellationTokeSource = new CancellationTokenSource(Debugger.IsAttached ? Timeout.InfiniteTimeSpan : _options.HandshakeTimeout))
             {
                 try
                 {
-                    var sslOptions = new SslClientAuthenticationOptions
+                    // Adapt to the SslStream signature
+                    ServerCertificateSelectionCallback selector = null;
+                    if (_certificateSelector != null)
                     {
-                        //ClientCertificates = new X509CertificateCollection(new[] { _certificate }),
+                        selector = (sender, name) =>
+                        {
+                            context.Features.Set(sslStream);
+                            var cert = _certificateSelector(context, name);
+                            if (cert != null)
+                            {
+                                EnsureCertificateIsAllowedForServerAuth(cert);
+                            }
+                            return cert;
+                        };
+                    }
+
+                    var sslOptions = new SslServerAuthenticationOptions
+                    {
+                        ServerCertificate = _certificate,
+                        ServerCertificateSelectionCallback = selector,
+                        ClientCertificateRequired = certificateRequired,
                         EnabledSslProtocols = _options.SslProtocols,
                         CertificateRevocationCheckMode = _options.CheckCertificateRevocation ? X509RevocationMode.Online : X509RevocationMode.NoCheck,
-                        ApplicationProtocols = new List<SslApplicationProtocol>(),
-                        TargetHost = "localhost"
+                        ApplicationProtocols = new List<SslApplicationProtocol>()
                     };
 
-                    _options.OnAuthenticateAsClient?.Invoke(context, sslOptions);
+                    _options.OnAuthenticateAsServer?.Invoke(context, sslOptions);
 
-                    await sslStream.AuthenticateAsClientAsync(sslOptions, cancellationTokeSource.Token);
+                    await sslStream.AuthenticateAsServerAsync(sslOptions, cancellationTokeSource.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -180,11 +216,11 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware
             }
         }
 
-        protected static void EnsureCertificateIsAllowedForClientAuth(X509Certificate2 certificate)
+        protected static void EnsureCertificateIsAllowedForServerAuth(X509Certificate2 certificate)
         {
-            if (!CertificateLoader.IsCertificateAllowedForClientAuth(certificate))
+            if (!CertificateLoader.IsCertificateAllowedForServerAuth(certificate))
             {
-                throw new InvalidOperationException($"Invalid client certificate for client authentication: {certificate.Thumbprint}");
+                throw new InvalidOperationException($"Invalid server certificate for server authentication: {certificate.Thumbprint}");
             }
         }
 

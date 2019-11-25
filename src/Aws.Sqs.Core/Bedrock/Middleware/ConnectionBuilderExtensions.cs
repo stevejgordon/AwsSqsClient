@@ -61,5 +61,33 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware
             });
             return builder;
         }
+
+
+        public static TBuilder UseServerTls<TBuilder>(
+            this TBuilder builder,
+            Action<TlsOptions> configure) where TBuilder : IConnectionBuilder
+        {
+            var options = new TlsOptions();
+            configure(options);
+            return builder.UseServerTls(options);
+        }
+
+        public static TBuilder UseServerTls<TBuilder>(
+            this TBuilder builder,
+            TlsOptions options) where TBuilder : IConnectionBuilder
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            var loggerFactory = builder.ApplicationServices.GetService(typeof(ILoggerFactory)) as ILoggerFactory ?? NullLoggerFactory.Instance;
+            builder.Use(next =>
+            {
+                var middleware = new TlsServerConnectionMiddleware(next, options, loggerFactory);
+                return middleware.OnConnectionAsync;
+            });
+            return builder;
+        }
     }
 }

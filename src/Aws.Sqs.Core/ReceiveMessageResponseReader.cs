@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace HighPerfCloud.Aws.Sqs.Core
 {
@@ -19,6 +20,8 @@ namespace HighPerfCloud.Aws.Sqs.Core
             var count = 0;
             var remainingData = bytes;
             int index;
+
+            //var final = Encoding.UTF8.GetString(remainingData);
 
             while (count < MaxMessages && (index = remainingData.IndexOf(SqsResponseConstants.MessageTagStart)) != -1)
             {

@@ -33,9 +33,13 @@ namespace UsageSamples
                 .UseSockets()
                 .UseDnsCaching(TimeSpan.FromHours(1))
                 .UseConnectionLogging()
+                .UseClientTls(o =>
+                {
+                    //o.RemoteCertificateMode = HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware.Tls.RemoteCertificateMode.RequireCertificate;
+                })
                 .Build();
 
-            await using var connection = await client.ConnectAsync(new DnsEndPoint("localhost", 5000));
+            await using var connection = await client.ConnectAsync(new DnsEndPoint("localhost", 5001));
 
             var httpProtocol = HttpClientProtocol.CreateFromConnection(connection);
 
@@ -43,6 +47,12 @@ namespace UsageSamples
             request.Headers.Host = "localhost";
 
             var response = await httpProtocol.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                //var final = await response.Content.ReadAsStringAsync();
+            }
+                     
 
 
             //for (int i = 0; i < 10; i++)

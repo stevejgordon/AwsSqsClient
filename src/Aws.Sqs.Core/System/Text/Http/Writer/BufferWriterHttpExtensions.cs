@@ -2,8 +2,10 @@
 //// The .NET Foundation licenses this file to you under the MIT license.
 //// See the LICENSE file in the project root for more information.
 
+//using HighPerfCloud.Aws.Sqs.Core.Bedrock.Infrastructure;
 //using System.Buffers;
 //using System.Buffers.Writer;
+//using System.IO.Pipelines;
 
 //namespace System.Text.Http.Formatter
 //{
@@ -21,9 +23,9 @@
 //            return writer;
 //        }
 
-//        public static void WriteRequestLine(ref this BufferWriter writer, Parser.Http.Method verb, Parser.Http.Version version, string path)
+//        public static void WriteRequestLine(ref this BufferWriter<PipeWriter> writer, Parser.Http.Method verb, Parser.Http.Version version, string path)
 //        {
-//            writer.WriteBytes(verb.AsBytes());
+//            writer.Write(verb.AsBytes());
 //            writer.Write(" /");
 
 //            writer.Write(path);
