@@ -25,6 +25,12 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Infrastructure
             return buffer.ToArray();
         }
 
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public static void WriteHostHeader<T>(ref this BufferWriter<T> buffer, string data) where T : IBufferWriter<byte>
+        //{
+
+        //}
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static unsafe void WriteNumeric<T>(ref this BufferWriter<T> buffer, uint number)
             where T : struct, IBufferWriter<byte>

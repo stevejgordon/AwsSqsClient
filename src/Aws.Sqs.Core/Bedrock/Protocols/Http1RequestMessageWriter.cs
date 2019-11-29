@@ -3,14 +3,16 @@ using System.Buffers;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using HighPerfCloud.Aws.Sqs.Core.Bedrock.Infrastructure;
+using HighPerfCloud.Aws.Sqs.Core.Primitives;
 
 namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Protocols
 {
     public class Http1RequestMessageWriter : IProtocolWriter<HttpRequestMessage>
     {
-        private ReadOnlySpan<byte> Http11 => new byte[] { (byte)'H', (byte)'T', (byte)'T', (byte)'P', (byte)'/', (byte)'1', (byte)'.', (byte)'1' };
-        private ReadOnlySpan<byte> NewLine => new byte[] { (byte)'\r', (byte)'\n' };
-        private ReadOnlySpan<byte> Space => new byte[] { (byte)' ' };
+        private ReadOnlySpan<byte> Get => new [] { (byte)'G', (byte)'E', (byte)'T' };
+        private ReadOnlySpan<byte> Http11 => new [] { (byte)'H', (byte)'T', (byte)'T', (byte)'P', (byte)'/', (byte)'1', (byte)'.', (byte)'1' };
+        private ReadOnlySpan<byte> NewLine => new [] { (byte)'\r', (byte)'\n' };
+        private ReadOnlySpan<byte> Space => new [] { (byte)' ' };
 
         public void WriteMessage(HttpRequestMessage message, IBufferWriter<byte> output)
         {
@@ -38,6 +40,17 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Protocols
 
             writer.Write(NewLine);
             writer.Commit();
+        }
+
+        // todo - temp location for this, will be in a higher level class later
+        public void WriteReceieveSqsRequest(QueueName queueName, in AwsRegion region, in AccountId accountId, IBufferWriter<byte> output)
+        {
+            var writer = new BufferWriter<IBufferWriter<byte>>(output);
+
+            var urlBuilder = new QueueUrlBuilder();
+                       
+            writer.Write(Get);
+            writer.Write(Space);
         }
     }
 }

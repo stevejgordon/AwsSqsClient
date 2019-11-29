@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Buffers;
+using HighPerfCloud.Aws.Sqs.Core.Bedrock.Infrastructure;
 using HighPerfCloud.Aws.Sqs.Core.Primitives;
 
 namespace HighPerfCloud.Aws.Sqs.Core
@@ -9,13 +11,18 @@ namespace HighPerfCloud.Aws.Sqs.Core
 
         private static ReadOnlySpan<char> SuffixChars => new[] { '.', 'a', 'm', 'a', 'z', 'o', 'n', 'a', 'w', 's', '.', 'c', 'o', 'm', '/', };
 
-        private const char SlashChar = '/';
+        private const char SlashChar = '/';       
 
-        public bool TryBuild(Span<char> destination, in QueueName queueName, in AwsRegion region, in AccountId accountId, out int bytesWritten, bool skipLengthCheck = false)
+        public void WriteHostHeader(BufferWriter<IBufferWriter<byte>> writer, QueueName queueName, in AwsRegion region, in AccountId accountId)
+        {
+            //writer.Write
+        }
+
+        public bool TryBuild(Span<char> destination, QueueName queueName, in AwsRegion region, in AccountId accountId, out int bytesWritten, bool skipLengthCheck = false)
         {
             bytesWritten = 0;
 
-            if (!skipLengthCheck)
+            if (!skipLengthCheck) // todo - add method Build which skips this check
             {
                 var requiredLength = CalculateRequiredCharacterLength(queueName, region);
 
@@ -62,7 +69,7 @@ namespace HighPerfCloud.Aws.Sqs.Core
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="queueName"/> is null.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="region"/> is equal to default.</exception>
         /// <returns>A 32-bit signed integer indicating the number of characters needed for an AWS SQS queue.</returns>
-        public static int CalculateRequiredCharacterLength(in QueueName queueName, in AwsRegion region)
+        public static int CalculateRequiredCharacterLength(QueueName queueName, in AwsRegion region)
         {
             if (queueName is null)
                 throw new ArgumentNullException(nameof(queueName));
