@@ -125,7 +125,7 @@ namespace HighPerfCloud.Aws.Sqs.Core.Bedrock.Middleware
                         EnabledSslProtocols = _options.SslProtocols,
                         CertificateRevocationCheckMode = _options.CheckCertificateRevocation ? X509RevocationMode.Online : X509RevocationMode.NoCheck,
                         ApplicationProtocols = new List<SslApplicationProtocol>(),
-                        TargetHost = "localhost"
+                        TargetHost = "sqs.eu-west-2.amazonaws.com"
                     };
 
                     _options.OnAuthenticateAsClient?.Invoke(context, sslOptions);

@@ -75,6 +75,28 @@ namespace HighPerfCloud.Aws.Sqs.Core.Primitives
         }
 
         /// <summary>
+        ///   Tries to format the value of the current <see cref="AccountId"/> instance into the provided <see cref="Span{T}"/> of characters.
+        /// </summary>
+        /// <param name="destination">When this method returns, this instance's value formatted as a <see cref="Span{T}"/> of characters.</param>
+        /// <returns>
+        ///   <c>true</c> for success.
+        ///   <c>false</c> if destination was too short, or the formatting failed.
+        /// </returns>
+        public bool TryFormat(Span<char> destination, out int charsWritten)
+        {
+            charsWritten = 0;
+
+            if (destination.Length < 12)
+                return false; // not enough capacity
+
+            var formatted = _value.TryFormat(destination, out var written, Format, CultureInfo.InvariantCulture);
+
+            charsWritten = written;
+
+            return formatted && written == 12;
+        }
+
+        /// <summary>
         ///   Converts the numeric value of this instance to its equivalent string representation.
         /// </summary>
         /// <returns>The string representation of the value of this instance.</returns>

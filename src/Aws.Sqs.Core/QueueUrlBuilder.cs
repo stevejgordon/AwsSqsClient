@@ -13,11 +13,6 @@ namespace HighPerfCloud.Aws.Sqs.Core
 
         private const char SlashChar = '/';       
 
-        public void WriteHostHeader(BufferWriter<IBufferWriter<byte>> writer, QueueName queueName, in AwsRegion region, in AccountId accountId)
-        {
-            //writer.Write
-        }
-
         public bool TryBuild(Span<char> destination, QueueName queueName, in AwsRegion region, in AccountId accountId, out int bytesWritten, bool skipLengthCheck = false)
         {
             bytesWritten = 0;

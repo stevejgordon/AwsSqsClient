@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System;
+using HighPerfCloud.Aws.Sqs.Core.Primitives;
 
 namespace UsageSamples
 {
@@ -39,20 +40,22 @@ namespace UsageSamples
                 })
                 .Build();
 
-            await using var connection = await client.ConnectAsync(new DnsEndPoint("localhost", 5001));
+            await using var connection = await client.ConnectAsync(new DnsEndPoint("sqs.eu-west-2.amazonaws.com", 443));
 
             var httpProtocol = HttpClientProtocol.CreateFromConnection(connection);
 
-            var request = new HttpRequestMessage(HttpMethod.Get, "/");
-            request.Headers.Host = "localhost";
+            await httpProtocol.SendTestRequestSqs(new QueueName("test"), AwsRegion.EuWest2, new AccountId(1234567890));
 
-            var response = await httpProtocol.SendAsync(request);
+            //var request = new HttpRequestMessage(HttpMethod.Get, "/");
+            //request.Headers.Host = "localhost";
 
-            if (response.IsSuccessStatusCode)
-            {
-                //var final = await response.Content.ReadAsStringAsync();
-            }
-                     
+            //var response = await httpProtocol.SendAsync(request);
+
+            //if (response.IsSuccessStatusCode)
+            //{
+            //    //var final = await response.Content.ReadAsStringAsync();
+            //}
+
 
 
             //for (int i = 0; i < 10; i++)
